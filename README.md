@@ -1,2 +1,2 @@
 # ML_Project
-This git is for ML Project of ML Class
+This git is for the ML Project of ML Class
