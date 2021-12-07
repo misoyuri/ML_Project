@@ -67,55 +67,56 @@ class HelloCNN(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(1, 48, 3, padding=1),
             nn.ReLU(),
-            nn.BatchNorm2d(48),
             nn.Conv2d(48, 48, 3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(48),
-            nn.Conv2d(48, 48, 3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(48),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.5)
+            nn.Dropout(0.2)
         )
         
         self.conv2 = nn.Sequential(
             nn.Conv2d(48, 96, 3, padding=1),
             nn.ReLU(),
-            nn.BatchNorm2d(96),
+            nn.Conv2d(96, 96, 3, padding=1),
+            nn.ReLU(),
             nn.Conv2d(96, 96, 3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(96),
-            nn.Conv2d(96, 96, 3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(96),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.5)
+            nn.Dropout(0.2)
         )
         
         self.conv3 = nn.Sequential(
-            nn.Conv2d(48, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(96),
-            nn.Conv2d(96, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(96),
-            nn.Conv2d(96, 96, 3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(96),
-            nn.MaxPool2d(2, 2),
-            nn.Dropout(0.5)
-        )
-                
-        self.conv4 = nn.Sequential(
             nn.Conv2d(96, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(192, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(192, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(192, 192, 3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(192),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.5)
+            nn.Dropout(0.2)
+        )
+        
+        
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(192, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(384, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(384, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(384, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(384),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.2)
         )
         
         self.fc = nn.Sequential(
-            nn.Linear(192, 7)
+            nn.Linear(384*3*3, 7),
         )
                 
         
@@ -123,6 +124,7 @@ class HelloCNN(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
+        x = self.conv4(x)
         
         x = x.view(x.size(0), -1)
         x = self.fc(x)
@@ -141,8 +143,8 @@ def timeSince(since):
 trainset_path = "./Dataset/train"
 testset_path = "./Dataset/test"
 
-transform = transforms.Compose([transforms.Resize((48, 48)), transforms.Grayscale(1), transforms.ToTensor(), ])
-batch_size = 64
+transform = transforms.Compose([transforms.Grayscale(1), transforms.ToTensor(), ])
+batch_size = 32
 
 custom_dataset_train = MyDataset(trainset_path, made_transforms = transform)
 custom_dataset_test = MyDataset(testset_path, made_transforms = transform)
@@ -159,7 +161,7 @@ print("MODEL_NAME = {}, DEVICE = {}".format(MODEL_NAME, DEVICE))
 
 model = HelloCNN().to(DEVICE)
 criterion = nn.CrossEntropyLoss()
-optim = torch.optim.Adam(model.parameters(), lr=0.001)
+optim = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-5)
 
 
 all_losses = []
