@@ -93,6 +93,20 @@ class HelloCNN(nn.Module):
         )
         
         self.conv3 = nn.Sequential(
+            nn.Conv2d(48, 96, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(96),
+            nn.Conv2d(96, 96, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(96),
+            nn.Conv2d(96, 96, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(96),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.5)
+        )
+                
+        self.conv4 = nn.Sequential(
             nn.Conv2d(96, 192, 3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(192),
@@ -155,7 +169,7 @@ i, l = custom_dataset_train[0]
 print(type(i))
 print(i.shape, l)
 
-max_epoch = 100000   
+max_epoch = 1000   
 step = 0             
 
 plot_every = 200
