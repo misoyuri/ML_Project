@@ -64,71 +64,49 @@ class HelloCNN(nn.Module):
     def __init__(self, num_classes=7):
         super(HelloCNN, self).__init__()
 
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 48, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(48, 48, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(48),
+        self.conv = nn.Sequential(
+            #1 48 48
+            nn.Conv2d(1, 64, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(64, 64, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.2)
-        )
-        
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(48, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(96, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(96, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(96),
+            #64 24 24
+            nn.Conv2d(64, 128, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(128, 128, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(128, 128, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.2)
-        )
-        
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(96, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(192, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(192, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(192, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(192),
+            #128 12 12
+            nn.Conv2d(128, 256, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(256, 256, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(256, 256, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(256, 256, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.2)
-        )
-        
-        
-        self.conv4 = nn.Sequential(
-            nn.Conv2d(192, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(384, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(384, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(384, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(384),
+            #256 6 6
+            nn.Conv2d(256, 512, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
+            nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            nn.Dropout(0.2)
+            #512 3 3
+            # nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
+            # nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
+            # nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
         )
-        
-        self.fc = nn.Sequential(
-            nn.Linear(384*3*3, 7),
+        #512 3 3
+
+        self.avg_pool = nn.AvgPool2d(3)
+        #512 1 1
+        self.classifier = nn.Sequential(
+            nn.Linear(512, 128), 
+            nn.Linear(128, 7)   
         )
                 
         
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
-        x = self.conv4(x)
-        
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-        x = F.log_softmax(x, dim=1)
+        features = self.conv(x)
+        x = self.avg_pool(features)
+        x = x.view(features.size(0), -1)
+        x = self.classifier(x)
+        x = F.log_softmax(x , dim=1)
         
         return x
     
@@ -143,8 +121,8 @@ def timeSince(since):
 trainset_path = "./Dataset/train"
 testset_path = "./Dataset/test"
 
-transform = transforms.Compose([transforms.Grayscale(1), transforms.ToTensor(), ])
-batch_size = 32
+transform = transforms.Compose([transforms.Grayscale(1), transforms.ToTensor(), transforms.Normalize((0.485,),(0.229,)), ])
+batch_size = 128
 
 custom_dataset_train = MyDataset(trainset_path, made_transforms = transform)
 custom_dataset_test = MyDataset(testset_path, made_transforms = transform)
@@ -161,7 +139,7 @@ print("MODEL_NAME = {}, DEVICE = {}".format(MODEL_NAME, DEVICE))
 
 model = HelloCNN().to(DEVICE)
 criterion = nn.CrossEntropyLoss()
-optim = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-5)
+optim = torch.optim.Adam(model.parameters(), lr=0.00001)
 
 
 all_losses = []
