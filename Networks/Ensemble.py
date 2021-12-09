@@ -21,6 +21,5 @@ class MyEnsemble(nn.Module):
         # out3 = self.modelC(x)
 
         out = out1 + out2
-
         out = out / 2
-        return torch.softmax(x, dim=1)    
+        return F.log_softmax(out, dim=1)    

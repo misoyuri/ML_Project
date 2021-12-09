@@ -19,9 +19,7 @@ from matplotlib.pyplot import imshow, imsave
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from Networks import CNN
-from Networks import FC
-from Networks import Ensemble
+from Networks import CNN, FC, Resnet, Ensemble
 
 print(torch.__version__)
 
@@ -62,10 +60,6 @@ class MyDataset():
 
 
 
-class ResNet(nn.Module):
-    s
-
-       
     
 def timeSince(since):
     now = time.time()
@@ -94,9 +88,11 @@ MODEL_NAME = 'DNN'
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("MODEL_NAME = {}, DEVICE = {}".format(MODEL_NAME, DEVICE))
 
-sCNN = CNN().to(DEVICE)
-sFC = FC().to(DEVICE)
-model = Ensemble(sFC, sCNN, 32).to(DEVICE)
+sCNN = CNN.SimpleCNN().to(DEVICE)
+sFC = FC.SimpleFC().to(DEVICE)
+model = Resnet.ResNet().to(DEVICE)
+# model = Ensemble.MyEnsemble(sFC, sCNN, 32).to(DEVICE)
+
 criterion = nn.CrossEntropyLoss()
 
 optim = torch.optim.Adam(model.parameters(), lr=0.00001)
