@@ -7,36 +7,35 @@ from torchvision import datasets
 from torchvision import transforms
 
 
-class SimpleCNN(nn.Module):
+class CNN20(nn.Module):
     """
         Simple CNN Clssifier
     """
     def __init__(self, num_classes=7):
-        super(SimpleCNN, self).__init__()
+        super().__init__()
 
         self.conv = nn.Sequential(
-            #1 48 48
             nn.Conv2d(1, 32, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(32, 32, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            #32 24 24
+
             nn.Conv2d(32, 64, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(64, 64, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(64, 64, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            #64 12 12
+
             nn.Conv2d(64, 128, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(128, 128, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(128, 128, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(128, 128, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            #128 6 6
+
             nn.Conv2d(128, 256, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(256, 256, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(256, 256, 3, padding=1),nn.LeakyReLU(0.2),
             nn.Conv2d(256, 256, 3, padding=1),nn.LeakyReLU(0.2),
             nn.MaxPool2d(2, 2),
-            #256 3 3
+
             # nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
             # nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
             # nn.Conv2d(512, 512, 3, padding=1),nn.LeakyReLU(0.2),
@@ -47,7 +46,7 @@ class SimpleCNN(nn.Module):
         #512 1 1
         self.classifier = nn.Sequential(
             nn.Linear(256, 128), 
-            nn.Linear(128, 7)   
+            nn.Linear(128, 32)   
         )
     
     def forward(self, x):

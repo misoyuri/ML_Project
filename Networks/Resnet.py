@@ -48,7 +48,7 @@ class ResNet(nn.Module):
         self.ReLU = nn.ReLU()
         # 64 1 1
         self.classifier = nn.Sequential(
-            nn.Linear(64, 7)   
+            nn.Linear(64, 32)   
         )
 
         self.pool = nn.Sequential(

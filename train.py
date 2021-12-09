@@ -19,7 +19,7 @@ from matplotlib.pyplot import imshow, imsave
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from Networks import CNN, FC, Resnet, Ensemble
+from Networks import Resnet, Ensemble, CNN19, CNN20
 
 print(torch.__version__)
 
@@ -73,7 +73,7 @@ trainset_path = "./Dataset/train"
 testset_path = "./Dataset/test"
 
 transform = transforms.Compose([transforms.Grayscale(1), transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,)), ])
-batch_size = 16
+batch_size = 128
 
 custom_dataset_train = MyDataset(trainset_path, made_transforms = transform)
 custom_dataset_test = MyDataset(testset_path, made_transforms = transform)
@@ -88,16 +88,17 @@ MODEL_NAME = 'DNN'
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("MODEL_NAME = {}, DEVICE = {}".format(MODEL_NAME, DEVICE))
 
-sCNN = CNN.SimpleCNN().to(DEVICE)
-sFC = FC.SimpleFC().to(DEVICE)
-model = Resnet.ResNet().to(DEVICE)
-# model = Ensemble.MyEnsemble(sFC, sCNN, 32).to(DEVICE)
+cnn19 = CNN19.CNN19().to(DEVICE)
+cnn20 = CNN20.CNN20().to(DEVICE)
+resnet = Resnet.ResNet().to(DEVICE)
+model = Ensemble.MyEnsemble(cnn19, cnn20, resnet, 32).to(DEVICE)
 
 criterion = nn.CrossEntropyLoss()
+optim = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=9e-4)
 
-optim = torch.optim.Adam(model.parameters(), lr=0.00001)
+train_losses = []
+test_losses = []
 
-all_losses = []
 all_acc = []
 i, l = custom_dataset_train[0]
 
@@ -127,13 +128,12 @@ for epoch in range(max_epoch):
         if step % 500 == 0:
             print('Epoch({}): {}/{}, Step: {}, Loss: {}'.format(timeSince(start), epoch, max_epoch, step, loss.item()))
         
-        if (step + 1) % plot_every == 0:
-            all_losses.append(total_loss / plot_every)
-            plt.figure()
-            plt.plot(all_losses)
-            plt.savefig("./losses.png")
-            plt.cla()
-            total_loss = 0
+        # if (step + 1) % plot_every == 0:
+        #     plt.figure()
+        #     plt.plot(all_losses)
+        #     plt.savefig("./losses.png")
+        #     plt.cla()
+        #     total_loss = 0
         
 
         if step % 1000 == 0:
@@ -160,7 +160,17 @@ for epoch in range(max_epoch):
             plt.plot(all_acc)
             plt.savefig("./acc_test.png")
             plt.cla()
-            model.train()
+            
+            train_losses.append(total_loss / 1000)
+            test_losses.append(loss)
+            plt.figure()
+            plt.plot(train_losses, c='orange', label='train loss')
+            plt.plot(test_losses, c='blue', label='test  loss')
+            plt.legend()
+            plt.savefig("./losses.png")
+            plt.cla()
+            total_loss = 0
+            
         step += 1
         
         
