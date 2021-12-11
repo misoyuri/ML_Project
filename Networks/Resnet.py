@@ -14,6 +14,9 @@ class ResNet(nn.Module):
         self.mid_dim = 16
         self.out_dim = 64
         
+        self.DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.converter = transforms.ToTensor()
+        
         # 1 48 48
         self.conv1 = nn.Sequential(
             nn.Conv2d(1, self.in_dim, kernel_size=7, stride=2, padding=3, bias=False),
@@ -48,7 +51,7 @@ class ResNet(nn.Module):
         self.ReLU = nn.ReLU()
         # 64 1 1
         self.classifier = nn.Sequential(
-            nn.Linear(64, 32)   
+            nn.Linear(64, 7)   
         )
 
         self.pool = nn.Sequential(
@@ -65,6 +68,13 @@ class ResNet(nn.Module):
         
         output = output.view(output.size(0), -1)
         output = self.classifier(output)
-        output = F.log_softmax(output , dim=1)
+        output = F.softmax(output , dim=1)
         
         return output
+    
+    
+    def predict(self, images):
+        x = self.converter(images)
+        x = x.reshape((1, 1, 48, 48)).to(self.DEVICE)
+        y_hat = self.forward(x)
+        return y_hat

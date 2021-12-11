@@ -8,7 +8,7 @@ from torchvision import transforms
 
 class MyEnsemble(nn.Module):
     def __init__(self, modelA, modelB, modelC, input):
-        super().__init__()
+        super(MyEnsemble, self).__init__()
         self.modelA = modelA
         self.modelB = modelB
         self.modelC = modelC
@@ -21,6 +21,5 @@ class MyEnsemble(nn.Module):
         out3 = self.modelC(x)
 
         out = out1 + out2 + out3
-        out = self.fc1(out)
-        
-        return F.softmax(out , dim=1)
+        out = out / 3
+        return F.softmax(out, dim=1)    

@@ -1,0 +1,90 @@
+class HelloCNN(nn.Module):
+    """
+        Simple CNN Clssifier
+    """
+    def __init__(self, num_classes=7):
+        super(HelloCNN, self).__init__()
+
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(1, 48, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(48, 48, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(48),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.2)
+        )
+        
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(48, 96, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(96, 96, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(96, 96, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(96),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.2)
+        )
+        
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(96, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(192, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(192, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(192, 192, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(192),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.2)
+        )
+        
+        
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(192, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(384, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(384, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(384, 384, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(384),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.2)
+        )
+        
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(384, 500, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(500, 500, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(500, 500, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(500, 500, 3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(500),
+            nn.AvgPool2d(3),
+            nn.Dropout(0.2)
+        )
+        
+        self.fc = nn.Sequential(
+            nn.Linear(500, 250),
+            nn.Linear(250, 7),
+        )
+                
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        x = F.log_softmax(x, dim=1)
+        
+        return x

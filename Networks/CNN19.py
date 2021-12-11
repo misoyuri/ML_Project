@@ -14,52 +14,34 @@ class CNN19(nn.Module):
         super().__init__()
        
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 48, 3, padding=1),
+            nn.Conv2d(1, 24, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(48, 48, 3, padding=1),
+            nn.BatchNorm2d(24),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout(0.2)
+        )
+        
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(24, 48, 3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(48),
             nn.MaxPool2d(2, 2),
             nn.Dropout(0.2)
         )
         
-        self.conv2 = nn.Sequential(
+        self.conv3 = nn.Sequential(
             nn.Conv2d(48, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(96, 96, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(96, 96, 3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(96),
             nn.MaxPool2d(2, 2),
             nn.Dropout(0.2)
         )
         
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(96, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(192, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(192, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(192, 192, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(192),
-            nn.MaxPool2d(2, 2),
-            nn.Dropout(0.2)
-        )
-        
         
         self.conv4 = nn.Sequential(
-            nn.Conv2d(192, 384, 3, padding=1),
+            nn.Conv2d(96, 192, 3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(384, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(384, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(384, 384, 3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(384),
+            nn.BatchNorm2d(192),
             nn.MaxPool2d(2, 2),
             nn.Dropout(0.2)
         )
@@ -67,7 +49,7 @@ class CNN19(nn.Module):
         self.avg_pool = nn.AvgPool2d(3)
         
         self.fc = nn.Sequential(
-            nn.Linear(384, 32),
+            nn.Linear(192, 32),
         )
         
         
@@ -80,6 +62,6 @@ class CNN19(nn.Module):
         
         x = x.view(x.size(0), -1)
         x = self.fc(x)
-        x = F.log_softmax(x, dim=1)
+        x = F.softmax(x, dim=1)
         
         return x

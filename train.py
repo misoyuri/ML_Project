@@ -1,4 +1,5 @@
 from __future__ import print_function
+from Networks.Resnet import ResNet
 import torch
 import torchvision            
 import torch.nn as nn
@@ -19,8 +20,7 @@ from matplotlib.pyplot import imshow, imsave
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from Networks import Resnet, Ensemble, CNN19, CNN20
-
+from Networks import Resnet, CNN_61acc, CNN, CNN_63acc, CNN_yoon, FC, Ensemble, Resnet9
 print(torch.__version__)
 
 class MyDataset():
@@ -59,8 +59,6 @@ class MyDataset():
         return self.length
 
 
-
-    
 def timeSince(since):
     now = time.time()
     s = now - since
@@ -72,8 +70,8 @@ def timeSince(since):
 trainset_path = "./Dataset/train"
 testset_path = "./Dataset/test"
 
-transform = transforms.Compose([transforms.Grayscale(1), transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,)), ])
-batch_size = 128
+transform = transforms.Compose([transforms.Grayscale(1), transforms.ToTensor(),])
+batch_size = 16
 
 custom_dataset_train = MyDataset(trainset_path, made_transforms = transform)
 custom_dataset_test = MyDataset(testset_path, made_transforms = transform)
@@ -88,24 +86,21 @@ MODEL_NAME = 'DNN'
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("MODEL_NAME = {}, DEVICE = {}".format(MODEL_NAME, DEVICE))
 
-cnn19 = CNN19.CNN19().to(DEVICE)
-cnn20 = CNN20.CNN20().to(DEVICE)
-resnet = Resnet.ResNet().to(DEVICE)
-model = Ensemble.MyEnsemble(cnn19, cnn20, resnet, 32).to(DEVICE)
-
+# model = Resnet9.ResNet9().to(DEVICE)
+model = FC.SimpleFC().to(DEVICE)
 criterion = nn.CrossEntropyLoss()
-optim = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=9e-4)
+optim = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.8, weight_decay=1e-5)
+
 
 train_losses = []
 test_losses = []
-
 all_acc = []
 i, l = custom_dataset_train[0]
 
 print(type(i))
 print(i.shape, l)
 
-max_epoch = 1000   
+max_epoch = 500   
 step = 0             
 
 plot_every = 200
@@ -128,16 +123,9 @@ for epoch in range(max_epoch):
         if step % 500 == 0:
             print('Epoch({}): {}/{}, Step: {}, Loss: {}'.format(timeSince(start), epoch, max_epoch, step, loss.item()))
         
-        # if (step + 1) % plot_every == 0:
-        #     plt.figure()
-        #     plt.plot(all_losses)
-        #     plt.savefig("./losses.png")
-        #     plt.cla()
-        #     total_loss = 0
-        
-
         if step % 1000 == 0:
-            save_file_name = "./weights/weights_" + str(step) + ".pth"
+            train_losses.append(loss)
+            save_file_name = "./weights/weights_" + str(int(step/1000)) + ".pth"
             torch.save(model.state_dict(), save_file_name)
             
             model.eval()
@@ -147,6 +135,7 @@ for epoch in range(max_epoch):
                     x, y = images.to(DEVICE), labels.to(DEVICE) # (N, 1, 28, 28), (N, )
                     y_hat = model(x) # (N, 10)
                     loss = criterion(y_hat, y)
+                    
                     _, indices = torch.max(y_hat, dim=-1)     
                     
                     acc += torch.sum(indices == y).item() 
@@ -157,20 +146,23 @@ for epoch in range(max_epoch):
             print('*'*46)
             
             plt.figure()
-            plt.plot(all_acc)
+            plt.plot(all_acc, label="Accuracy of Test")
+            # plt.legend()
             plt.savefig("./acc_test.png")
             plt.cla()
             
-            train_losses.append(total_loss / 1000)
             test_losses.append(loss)
             plt.figure()
-            plt.plot(train_losses, c='orange', label='train loss')
-            plt.plot(test_losses, c='blue', label='test  loss')
-            plt.legend()
+            # plt.plot(train_losses, c="orange", label="Train Loss")
+            # plt.plot(test_losses, c="blue", label="Test Loss")
+            plt.plot(test_losses)
+            # plt.legend()
             plt.savefig("./losses.png")
             plt.cla()
             total_loss = 0
             
+            
+            model.train()
         step += 1
         
         
